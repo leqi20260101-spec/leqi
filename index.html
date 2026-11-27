@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LEQI | 데일리 컨템포러리 웨어</title>
+  <meta name="description" content="LEQI 공식 온라인 스토어. 매일 입기 좋은 베이직 & 컨템포러리 의류.">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <header id="site-header"></header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-inner">
+        <div>
+          <p class="hero-eyebrow">2026 WINTER COLLECTION</p>
+          <h1>매일 입고 싶은<br>겨울의 기본</h1>
+          <p>따뜻한 소재와 깔끔한 실루엣으로 완성한 시즌 컬렉션을 만나보세요.</p>
+          <div class="hero-actions">
+            <a href="shop.html?cat=new" class="btn btn-dark">신상품 보기</a>
+            <a href="shop.html?cat=outer" class="btn btn-light">아우터 컬렉션</a>
+          </div>
+        </div>
+        <div class="hero-visual" id="hero-visual"></div>
+      </div>
+    </section>
+
+    <section class="section container">
+      <div class="section-head"><div><h2>CATEGORY</h2></div></div>
+      <div class="cat-tiles" id="cat-tiles"></div>
+    </section>
+
+    <section class="section container">
+      <div class="section-head">
+        <div><h2>NEW ARRIVALS</h2><p>이번 주 새로 들어온 상품</p></div>
+        <a href="shop.html?cat=new" class="more-link">전체보기</a>
+      </div>
+      <div class="grid" id="new-grid"></div>
+    </section>
+
+    <section class="section container">
+      <div class="section-head">
+        <div><h2>BEST</h2><p>가장 많이 사랑받는 상품</p></div>
+        <a href="shop.html?cat=best" class="more-link">전체보기</a>
+      </div>
+      <div class="grid" id="best-grid"></div>
+    </section>
+
+    <section class="container">
+      <div class="benefits">
+        <div class="benefit"><strong>5만원 이상 무료배송</strong><span>평일 오후 2시 이전 결제 시 당일 출고</span></div>
+        <div class="benefit"><strong>7일 이내 교환·반품</strong><span>상품 수령 후 7일 이내 간편 신청</span></div>
+        <div class="benefit"><strong>안전한 결제</strong><span>신용카드 · 카카오페이 · 네이버페이 · 토스페이</span></div>
+      </div>
+    </section>
+  </main>
+
+  <footer id="site-footer"></footer>
+
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/store.js"></script>
+  <script>
+    const coat = findProduct('p007'), knit = findProduct('p002');
+    $('#hero-visual').innerHTML = productImage(coat, coat.colors[0].hex) + productImage(knit, knit.colors[0].hex);
+
+    $('#cat-tiles').innerHTML = CATEGORIES.map((c) => {
+      const sample = PRODUCTS.find((p) => p.category === c.key);
+      return `<a class="cat-tile" href="shop.html?cat=${c.key}">${productImage(sample)}<span>${c.label}</span></a>`;
+    }).join('');
+
+    $('#new-grid').innerHTML = PRODUCTS.filter((p) => p.isNew).slice(0, 4).map(productCard).join('');
+    $('#best-grid').innerHTML = PRODUCTS.filter((p) => p.isBest).slice(0, 4).map(productCard).join('');
+  </script>
+</body>
+</html>
