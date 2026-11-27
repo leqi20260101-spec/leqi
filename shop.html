@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SHOP | LEQI</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <header id="site-header"></header>
+
+  <main class="container">
+    <div class="page-title">
+      <h1 id="title">ALL</h1>
+      <p id="subtitle">전체 상품</p>
+    </div>
+
+    <div class="toolbar">
+      <div class="filters" id="filters"></div>
+      <div style="display:flex;gap:12px;align-items:center">
+        <span class="count" id="count"></span>
+        <select class="select" id="sort" aria-label="정렬">
+          <option value="recommend">추천순</option>
+          <option value="new">신상품순</option>
+          <option value="low">낮은 가격순</option>
+          <option value="high">높은 가격순</option>
+          <option value="sale">할인율순</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid" id="grid"></div>
+    <div class="empty" id="empty" hidden><p>해당 조건의 상품이 없습니다.</p><a href="shop.html" class="btn btn-light">전체 상품 보기</a></div>
+  </main>
+
+  <footer id="site-footer"></footer>
+
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/store.js"></script>
+  <script>
+    const FILTERS = [
+      { key: 'all', label: '전체', sub: '전체 상품', test: () => true },
+      { key: 'new', label: 'NEW', sub: '새로 들어온 상품', test: (p) => p.isNew },
+      { key: 'best', label: 'BEST', sub: '가장 많이 사랑받는 상품', test: (p) => p.isBest },
+      ...CATEGORIES.map((c) => ({ key: c.key, label: c.label, sub: `${c.label} 카테고리`, test: (p) => p.category === c.key })),
+    ];
+
+    let current = FILTERS.find((f) => f.key === getParam('cat')) || FILTERS[0];
+
+    function render() {
+      const sort = $('#sort').value;
+      let list = PRODUCTS.filter(current.test);
+      if (sort === 'new') list = [...list].sort((a, b) => (b.isNew - a.isNew) || b.id.localeCompare(a.id));
+      if (sort === 'low') list = [...list].sort((a, b) => finalPrice(a) - finalPrice(b));
+      if (sort === 'high') list = [...list].sort((a, b) => finalPrice(b) - finalPrice(a));
+      if (sort === 'sale') list = [...list].sort((a, b) => discountRate(b) - discountRate(a));
+
+      $('#title').textContent = current.key === 'all' ? 'ALL' : current.label;
+      $('#subtitle').textContent = current.sub;
+      document.title = `${current.key === 'all' ? 'SHOP' : current.label} | ${SHOP.name}`;
+      $('#count').textContent = `${list.length}개 상품`;
+      $('#grid').innerHTML = list.map(productCard).join('');
+      $('#empty').hidden = list.length > 0;
+      $('#filters').innerHTML = FILTERS.map((f) =>
+        `<button class="chip ${f.key === current.key ? 'active' : ''}" data-key="${f.key}">${f.label}</button>`).join('');
+      $$('.main-nav a').forEach((a) => a.classList.toggle('active', a.getAttribute('href') === `shop.html?cat=${current.key}`));
+    }
+
+    $('#filters').addEventListener('click', (e) => {
+      const btn = e.target.closest('.chip');
+      if (!btn) return;
+      current = FILTERS.find((f) => f.key === btn.dataset.key);
+      history.replaceState(null, '', current.key === 'all' ? 'shop.html' : `shop.html?cat=${current.key}`);
+      render();
+    });
+    $('#sort').addEventListener('change', render);
+    document.addEventListener('DOMContentLoaded', render);
+  </script>
+</body>
+</html>

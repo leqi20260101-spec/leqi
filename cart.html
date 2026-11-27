@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>장바구니 | LEQI</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <header id="site-header"></header>
+
+  <main class="container">
+    <div class="page-title"><h1>장바구니</h1></div>
+    <div id="cart"></div>
+  </main>
+
+  <footer id="site-footer"></footer>
+
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/store.js"></script>
+  <script>
+    const colorHex = (p, name) => (p.colors.find((c) => c.name === name) || p.colors[0]).hex;
+
+    function render() {
+      const { lines, subtotal, shipping, total } = Cart.detail();
+      const root = $('#cart');
+      if (!lines.length) {
+        root.innerHTML = `<div class="empty"><p>장바구니에 담긴 상품이 없습니다.</p><a href="shop.html" class="btn btn-dark">쇼핑하러 가기</a></div>`;
+        return;
+      }
+      const remain = SHOP.freeShippingMin - subtotal;
+      root.innerHTML = `
+        <div class="cart-layout">
+          <div class="cart-list">
+            ${lines.map((l) => `
+              <div class="cart-item" data-key="${escapeHtml(l.key)}">
+                <a href="product.html?id=${l.id}" class="cart-thumb">${productImage(l.product, colorHex(l.product, l.color))}</a>
+                <div>
+                  <a href="product.html?id=${l.id}" class="cart-name">${escapeHtml(l.product.name)}</a>
+                  <p class="cart-opt">${escapeHtml(l.color)} / ${escapeHtml(l.size)} · ${won(l.unit)}</p>
+                  <div class="qty">
+                    <button type="button" data-d="-1" aria-label="수량 감소">−</button>
+                    <input type="number" value="${l.qty}" min="1" max="99" aria-label="수량">
+                    <button type="button" data-d="1" aria-label="수량 증가">+</button>
+                  </div>
+                </div>
+                <div class="cart-right">
+                  <strong>${won(l.total)}</strong>
+                  <button class="remove-btn" type="button">삭제</button>
+                </div>
+              </div>`).join('')}
+          </div>
+          <aside class="summary">
+            <h2>결제 예정 금액</h2>
+            <div class="summary-row"><span>상품 금액</span><span>${won(subtotal)}</span></div>
+            <div class="summary-row"><span>배송비</span><span>${shipping ? won(shipping) : '무료'}</span></div>
+            ${remain > 0 ? `<p class="free-hint">${won(remain)} 더 담으면 무료배송!</p>` : ''}
+            <div class="summary-total"><span>총 결제 금액</span><strong>${won(total)}</strong></div>
+            <a href="checkout.html" class="btn btn-dark btn-block">주문하기</a>
+            <a href="shop.html" class="btn btn-light btn-block" style="margin-top:8px">쇼핑 계속하기</a>
+          </aside>
+        </div>`;
+    }
+
+    $('#cart').addEventListener('click', (e) => {
+      const item = e.target.closest('.cart-item');
+      if (!item) return;
+      const key = item.dataset.key;
+      if (e.target.closest('.remove-btn')) { Cart.remove(key); render(); return; }
+      const btn = e.target.closest('.qty button');
+      if (btn) {
+        const current = Cart.items().find((i) => i.key === key);
+        Cart.setQty(key, current.qty + Number(btn.dataset.d));
+        render();
+      }
+    });
+    $('#cart').addEventListener('change', (e) => {
+      const item = e.target.closest('.cart-item');
+      if (item && e.target.matches('.qty input')) {
+        Cart.setQty(item.dataset.key, parseInt(e.target.value, 10) || 1);
+        render();
+      }
+    });
+
+    render();
+  </script>
+</body>
+</html>
